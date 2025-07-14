@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Game by Yusuf</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --warning: #f72585;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            background-attachment: fixed;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-weight: 700;
+        }
+        
+        .game-container {
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 30px;
+        }
+        
+        .game-options {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .card {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #3a0ca3, #4361ee);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        .card.flipped {
+            background: white;
+            transform: rotateY(180deg) translateY(-5px);
+        }
+        
+        .card.matched {
+            background: linear-gradient(145deg, #4cc9f0, #4895ef);
+            cursor: default;
+            transform: scale(0.95);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .player-info {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .player {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin: 5px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            min-width: 150px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .current-player {
+            background: linear-gradient(145deg, #f72585, #b5179e);
+            box-shadow: 0 6px 12px rgba(247, 37, 133, 0.4);
+            transform: translateY(-3px);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(to right, #f72585, #b5179e);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        select, input {
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1rem;
+            margin: 8px 0;
+            width: 100%;
+            max-width: 300px;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: rgba(255,255,255,0.3);
+        }
+        
+        input::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            font-family: 'Pacifico', cursive;
+            font-size: 1.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            opacity: 0.9;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #f72585, 0 0 20px #f72585;
+            }
+            to {
+                text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #f72585, 0 0 40px #f72585;
+            }
+        }
+        
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .game-stats p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        /* Custom emoji selection styles */
+        .emoji-category {
+            background: rgba(255,255,255,0.15);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .emoji-category h3 {
+            margin-top: 0;
+            color: white;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 8px;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+        }
+        
+        .emoji-btn {
+            font-size: 28px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 5px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        
+        .emoji-btn:hover {
+            transform: scale(1.2);
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .emoji-btn.selected {
+            background: var(--success);
+            transform: scale(1.1);
+        }
+        
+        .selected-emojis-container {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+        
+        .selected-emojis-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .selected-emoji {
+            font-size: 28px;
+            animation: pop 0.3s ease;
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .player-info {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .player {
+                width: 100%;
+                max-width: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Memory Game</h1>
+    
+    <div class="game-container">
+        <div class="game-options" id="setup-screen">
+            <h2 style="margin-top: 0; color: white;">Game Setup</h2>
+            <div>
+                <label for="player-count">Number of Players (1-4):</label>
+                <select id="player-count">
+                    <option value="1">1 Player</option>
+                    <option value="2">2 Players</option>
+                    <option value="3">3 Players</option>
+                    <option value="4">4 Players</option>
+                </select>
+            </div>
+            <div style="margin-top: 15px;">
+                <label for="player1-name">Player 1 Name:</label>
+                <input type="text" id="player1-name" value="Yusuf" placeholder="Enter player name">
+            </div>
+            <div id="additional-players" style="margin-top: 15px;"></div>
+            <div style="margin-top: 15px;">
+                <label for="emoji-selection">Emoji Selection:</label>
+                <select id="emoji-selection">
+                    <option value="random">Random Category</option>
+                    <option value="animals">Animals</option>
+                    <option value="sports">Sports</option>
+                    <option value="faces">Faces</option>
+                    <option value="hands">Hand Gestures</option>
+                    <option value="flowers">Flowers</option>
+                    <option value="custom">Custom Selection</option>
+                </select>
+            </div>
+            <button id="start-game" style="margin-top: 20px; width: 100%; max-width: 300px; display: block; margin-left: auto; margin-right: auto;">Start Game</button>
+        </div>
+        
+        <div id="game-screen" style="display: none;">
+            <div class="player-info" id="player-info"></div>
+            <div class="game-stats">
+                <p>Round: <span id="round-count" style="color: #4cc9f0;">1</span></p>
+                <p>Pairs Found: <span id="pairs-found" style="color: #4cc9f0;">0</span>/16</p>
+                <p>Category: <span id="category-name" style="color: #4cc9f0;">-</span></p>
+            </div>
+            <div class="game-board" id="game-board"></div>
+            <div class="controls">
+                <button id="new-round">New Round</button>
+                <button id="restart-game">Restart Game</button>
+            </div>
+        </div>
+        
+        <div id="custom-emoji-screen" style="display: none;">
+            <h2 style="color: white; text-align: center;">Select Emojis for the Game</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                <div class="emoji-category">
+                    <h3>Animals</h3>
+                    <div class="emoji-grid" id="animal-emojis"></div>
+                </div>
+                <div class="emoji-category">
+                    <h3>Sports</h3>
+                    <div class="emoji-grid" id="sport-emojis"></div>
+                </div>
+                <div class="emoji-category">
+                    <h3>Faces</h3>
+                    <div class="emoji-grid" id="face-emojis"></div>
+                </div>
+                <div class="emoji-category">
+                    <h3>Hands</h3>
+                    <div class="emoji-grid" id="hand-emojis"></div>
+                </div>
+                <div class="emoji-category">
+                    <h3>Flowers</h3>
+                    <div class="emoji-grid" id="flower-emojis"></div>
+                </div>
+            </div>
+            
+            <div class="selected-emojis-container">
+                <p>Selected Emojis: <span id="selected-count" style="color: #4cc9f0;">0</span>/16</p>
+                <div class="selected-emojis-display" id="selected-list"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px;">
+                <button id="confirm-emojis" style="padding: 15px 30px; font-size: 1.1rem;">Confirm Selection (16 needed)</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">Made by Yusuf</div>
+
+    <script>
+        // Game state
+        let gameState = {
+            players: [],
+            currentPlayer: 0,
+            round: 1,
+            cards: [],
+            flippedCards: [],
+            matchedPairs: 0,
+            scores: {},
+            emojiPool: [],
+            selectedEmojis: [],
+            currentCategory: ""
+        };
+
+        // Emoji categories
+        const emojiCategories = {
+            animals: ['🐶', '😹', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🦍', '🐔', '🦏', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄'],
+            sports: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽'],
+            faces: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '🥲', '☺️', '🤭', '😇', '🙂', '🤬', '😉', '🥵', '😍', '🥰', '😘', '🥶', '😙', '😚', '😋', '👺', '🥴', '😜', '🤪'],
+            hands: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕🏿', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐'],
+            flowers: ['💐', '🌸', '💮', '🏵️', '🌹', '🥀', '🌺', '🌻', '🌼', '🌷', '🌱', '🪴', '🌲', '🌳', '🌴', '🪹', '🪺', '🌵', '🌾', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🪷', '🪻']
+        };
+
+        // DOM elements
+        const setupScreen = document.getElementById('setup-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const customEmojiScreen = document.getElementById('custom-emoji-screen');
+        const playerCountSelect = document.getElementById('player-count');
+        const player1NameInput = document.getElementById('player1-name');
+        const additionalPlayersDiv = document.getElementById('additional-players');
+        const emojiSelectionSelect = document.getElementById('emoji-selection');
+        const startGameBtn = document.getElementById('start-game');
+        const playerInfoDiv = document.getElementById('player-info');
+        const gameBoard = document.getElementById('game-board');
+        const roundCountSpan = document.getElementById('round-count');
+        const pairsFoundSpan = document.getElementById('pairs-found');
+        const categoryNameSpan = document.getElementById('category-name');
+        const newRoundBtn = document.getElementById('new-round');
+        const restartGameBtn = document.getElementById('restart-game');
+        const confirmEmojisBtn = document.getElementById('confirm-emojis');
+        const selectedCountSpan = document.getElementById('selected-count');
+        const selectedListDiv = document.getElementById('selected-list');
+
+        // Initialize emoji selection screens
+        function initEmojiSelection() {
+            // Clear previous selections
+            gameState.selectedEmojis = [];
+            selectedCountSpan.textContent = '0';
+            selectedListDiv.innerHTML = '';
+            
+            // Populate emoji categories
+            for (const category in emojiCategories) {
+                const container = document.getElementById(`${category}-emojis`);
+                container.innerHTML = '';
+                
+                emojiCategories[category].forEach(emoji => {
+                    const emojiBtn = document.createElement('button');
+                    emojiBtn.className = 'emoji-btn';
+                    emojiBtn.textContent = emoji;
+                    emojiBtn.dataset.emoji = emoji;
+                    
+                    emojiBtn.addEventListener('click', () => {
+                        if (emojiBtn.classList.contains('selected')) {
+                            // Remove if already selected
+                            emojiBtn.classList.remove('selected');
+                            gameState.selectedEmojis = gameState.selectedEmojis.filter(e => e !== emoji);
+                        } else if (gameState.selectedEmojis.length < 16) {
+                            // Add if not already selected and we have space
+                            emojiBtn.classList.add('selected');
+                            gameState.selectedEmojis.push(emoji);
+                        }
+                        
+                        // Update selected display
+                        selectedCountSpan.textContent = gameState.selectedEmojis.length;
+                        selectedListDiv.innerHTML = gameState.selectedEmojis.map(e => 
+                            `<span class="selected-emoji">${e}</span>`
+                        ).join('');
+                    });
+                    
+                    container.appendChild(emojiBtn);
+                });
+            }
+        }
+
+        // Update additional player inputs based on player count
+        function updatePlayerInputs() {
+            const count = parseInt(playerCountSelect.value);
+            additionalPlayersDiv.innerHTML = '';
+            
+            for (let i = 2; i <= count; i++) {
+                const div = document.createElement('div');
+                div.style.marginTop = '15px';
+                div.innerHTML = `
+                    <label for="player${i}-name">Player ${i} Name:</label>
+                    <input type="text" id="player${i}-name" value="Player ${i}" placeholder="Enter player name">
+                `;
+                additionalPlayersDiv.appendChild(div);
+            }
+        }
+
+        // Get emojis for selected category
+        function getEmojisForCategory(category) {
+            if (category === 'random') {
+                // Pick a random category
+                const categories = Object.keys(emojiCategories);
+                const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+                gameState.currentCategory = randomCategory.charAt(0).toUpperCase() + randomCategory.slice(1);
+                return [...emojiCategories[randomCategory]].sort(() => 0.5 - Math.random()).slice(0, 16);
+            } else if (emojiCategories[category]) {
+                gameState.currentCategory = category.charAt(0).toUpperCase() + category.slice(1);
+                return [...emojiCategories[category]].sort(() => 0.5 - Math.random()).slice(0, 16);
+            }
+            return [];
+        }
+
+        // Initialize game
+        function initGame() {
+            const playerCount = parseInt(playerCountSelect.value);
+            gameState.players = [player1NameInput.value.trim() || 'Player 1'];
+            
+            for (let i = 2; i <= playerCount; i++) {
+                const name = document.getElementById(`player${i}-name`).value.trim() || `Player ${i}`;
+                gameState.players.push(name);
+            }
+            
+            gameState.scores = {};
+            gameState.players.forEach(player => {
+                gameState.scores[player] = 0;
+            });
+            
+            // Check if we need custom emoji selection
+            if (emojiSelectionSelect.value === 'custom') {
+                initEmojiSelection();
+                setupScreen.style.display = 'none';
+                gameScreen.style.display = 'none';
+                customEmojiScreen.style.display = 'block';
+            } else {
+                startRound();
+            }
+        }
+
+        // Start a new round
+        function startRound() {
+            gameState.matchedPairs = 0;
+            gameState.flippedCards = [];
+            gameState.cards = [];
+            
+            // Randomize first player
+            gameState.currentPlayer = Math.floor(Math.random() * gameState.players.length);
+            
+            // Create emoji pool based on selection
+            if (emojiSelectionSelect.value === 'custom' && gameState.selectedEmojis.length >= 16) {
+                gameState.emojiPool = [...gameState.selectedEmojis].slice(0, 16);
+                gameState.currentCategory = "Custom Selection";
+            } else {
+                gameState.emojiPool = getEmojisForCategory(emojiSelectionSelect.value);
+            }
+            
+            // Create pairs
+            const emojiPairs = [...gameState.emojiPool, ...gameState.emojiPool];
+            
+            // Shuffle the pairs
+            for (let i = emojiPairs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [emojiPairs[i], emojiPairs[j]] = [emojiPairs[j], emojiPairs[i]];
+            }
+            
+            // Create cards
+            gameBoard.innerHTML = '';
+            emojiPairs.forEach((emoji, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.index = index;
+                card.dataset.emoji = emoji;
+                card.addEventListener('click', handleCardClick);
+                gameBoard.appendChild(card);
+                gameState.cards.push({
+                    element: card,
+                    emoji: emoji,
+                    flipped: false,
+                    matched: false
+                });
+            });
+            
+            // Update UI
+            updatePlayerInfo();
+            roundCountSpan.textContent = gameState.round;
+            pairsFoundSpan.textContent = '0';
+            categoryNameSpan.textContent = gameState.currentCategory;
+            
+            // Show game screen
+            setupScreen.style.display = 'none';
+            customEmojiScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+        }
+
+        // Handle card clicks
+        function handleCardClick(event) {
+            const cardIndex = parseInt(event.target.dataset.index);
+            const card = gameState.cards[cardIndex];
+            
+            // Don't allow flipping if already flipped, matched, or two cards are already flipped
+            if (card.flipped || card.matched || gameState.flippedCards.length >= 2) {
+                return;
+            }
+            
+            // Flip the card
+            card.flipped = true;
+            card.element.textContent = card.emoji;
+            card.element.classList.add('flipped');
+            gameState.flippedCards.push(card);
+            
+            // Check for match if two cards are flipped
+            if (gameState.flippedCards.length === 2) {
+                const [card1, card2] = gameState.flippedCards;
+                
+                if (card1.emoji === card2.emoji) {
+                    // Match found
+                    setTimeout(() => {
+                        card1.matched = true;
+                        card2.matched = true;
+                        card1.element.classList.add('matched');
+                        card2.element.classList.add('matched');
+                        gameState.flippedCards = [];
+                        gameState.matchedPairs++;
+                        pairsFoundSpan.textContent = gameState.matchedPairs;
+                        
+                        // Update score
+                        const currentPlayerName = gameState.players[gameState.currentPlayer];
+                        gameState.scores[currentPlayerName]++;
+                        updatePlayerInfo();
+                        
+                        // Check if game is over
+                        if (gameState.matchedPairs === 16) {
+                            setTimeout(() => {
+                                alert(`Round over! Scores:\n${Object.entries(gameState.scores).map(([name, score]) => `${name}: ${score}`).join('\n')}`);
+                            }, 500);
+                        }
+                    }, 300);
+                } else {
+                    // No match, flip back after delay
+                    setTimeout(() => {
+                        card1.flipped = false;
+                        card2.flipped = false;
+                        card1.element.textContent = '';
+                        card2.element.textContent = '';
+                        card1.element.classList.remove('flipped');
+                        card2.element.classList.remove('flipped');
+                        gameState.flippedCards = [];
+                        
+                        // Move to next player
+                        gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.players.length;
+                        updatePlayerInfo();
+                    }, 1000);
+                }
+            }
+        }
+
+        // Update player information display
+        function updatePlayerInfo() {
+            playerInfoDiv.innerHTML = '';
+            
+            gameState.players.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = `player ${index === gameState.currentPlayer ? 'current-player' : ''}`;
+                playerDiv.innerHTML = `
+                    <div>${player}</div>
+                    <div>Score: ${gameState.scores[player]}</div>
+                `;
+                playerInfoDiv.appendChild(playerDiv);
+            });
+        }
+
+        // Event listeners
+        playerCountSelect.addEventListener('change', updatePlayerInputs);
+        startGameBtn.addEventListener('click', initGame);
+        newRoundBtn.addEventListener('click', () => {
+            gameState.round++;
+            startRound();
+        });
+        restartGameBtn.addEventListener('click', () => {
+            gameState.round = 1;
+            gameState.scores = {};
+            gameState.players.forEach(player => {
+                gameState.scores[player] = 0;
+            });
+            startRound();
+        });
+        confirmEmojisBtn.addEventListener('click', () => {
+            if (gameState.selectedEmojis.length >= 16) {
+                gameState.currentCategory = "Custom Selection";
+                startRound();
+            } else {
+                alert(`Please select exactly 16 emojis (currently selected: ${gameState.selectedEmojis.length})`);
+            }
+        });
+
+        // Initialize
+        updatePlayerInputs();
+    </script>
+</body>
+</html>
+```
+            
